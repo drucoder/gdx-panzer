@@ -2,7 +2,6 @@ package letscode.gdx;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -18,7 +17,12 @@ public class Starter extends ApplicationAdapter {
 	private Panzer me;
 	private final List<Panzer> enemies = new ArrayList<>();
 
-	private KeyboardAdapter inputProcessor = new KeyboardAdapter();
+	private final KeyboardAdapter inputProcessor;
+	private MessageSender messageSender;
+
+	public Starter(InputState inputState) {
+		this.inputProcessor = new KeyboardAdapter(inputState);
+	}
 
 	@Override
 	public void create () {
@@ -57,5 +61,16 @@ public class Starter extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		me.dispose();
+	}
+
+	public void setMessageSender(MessageSender messageSender) {
+		this.messageSender = messageSender;
+	}
+
+	public void handleTimer() {
+		if (inputProcessor != null) {
+			InputState playerState = inputProcessor.updateAndGetInputState(me.getOrigin());
+			messageSender.sendMessage(playerState);
+		}
 	}
 }
