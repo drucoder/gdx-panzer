@@ -10,7 +10,7 @@ public class Panzer {
     private final float halfSize = size / 2;
 
     private final Vector2 position = new Vector2();
-    private final Vector2 angle = new Vector2();
+    private final Vector2 angle = new Vector2(1, 1);
     private final Vector2 origin = new Vector2();
 
     private final Texture texture;
@@ -38,7 +38,7 @@ public class Panzer {
                 size,
                 1,
                 1,
-                angle.angleDeg() - 90
+                angle.angleDeg()
         );
     }
 
@@ -61,5 +61,14 @@ public class Panzer {
 
     public Vector2 getOrigin() {
         return origin;
+    }
+
+    public void moveTo(float x, float y) {
+        position.set(x, y);
+        origin.set(position).add(halfSize, halfSize);
+    }
+
+    public void rotateTo(float angle) {
+        this.angle.setAngleDeg(angle);
     }
 }

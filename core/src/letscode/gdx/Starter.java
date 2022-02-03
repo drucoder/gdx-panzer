@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.ArrayList;
@@ -14,8 +15,8 @@ import java.util.stream.IntStream;
 public class Starter extends ApplicationAdapter {
 	SpriteBatch batch;
 
-	private Panzer me;
-	private final List<Panzer> enemies = new ArrayList<>();
+	private String meId;
+	private ObjectMap<String, Panzer> panzers = new ObjectMap<>();
 
 	private final KeyboardAdapter inputProcessor;
 	private MessageSender messageSender;
@@ -29,38 +30,26 @@ public class Starter extends ApplicationAdapter {
 		Gdx.input.setInputProcessor(inputProcessor);
 		batch = new SpriteBatch();
 
-		me = new Panzer(100, 200);
-
-		List<Panzer> newEnemies = IntStream.range(0, 15)
-				.mapToObj(i -> {
-					int x = MathUtils.random(Gdx.graphics.getWidth());
-					int y = MathUtils.random(Gdx.graphics.getHeight());
-
-					return new Panzer(x, y, "panzer_enemy.png");
-				})
-				.collect(Collectors.toList());
-		enemies.addAll(newEnemies);
+		Panzer me = new Panzer(100, 200);
+		panzers.put(meId, me);
 	}
 
 	@Override
 	public void render () {
-		me.moveTo(inputProcessor.getDirection());
-		me.rotateTo(inputProcessor.getMousePos());
-
 		ScreenUtils.clear(1, 1, 1, 1);
 		batch.begin();
-		me.render(batch);
-		enemies.forEach(enemy -> {
-			enemy.render(batch);
-			enemy.rotateTo(me.getPosition());
-		});
+		for (String key : panzers.keys()) {
+			panzers.get(key).render(batch);
+		}
 		batch.end();
 	}
 	
 	@Override
 	public void dispose () {
 		batch.dispose();
-		me.dispose();
+		for (Panzer value : panzers.values()) {
+			value.dispose();
+		}
 	}
 
 	public void setMessageSender(MessageSender messageSender) {
@@ -68,9 +57,34 @@ public class Starter extends ApplicationAdapter {
 	}
 
 	public void handleTimer() {
-		if (inputProcessor != null) {
+		if (inputProcessor != null && !panzers.isEmpty()) {
+			Panzer me = panzers.get(meId);
 			InputState playerState = inputProcessor.updateAndGetInputState(me.getOrigin());
 			messageSender.sendMessage(playerState);
 		}
+	}
+
+	public void setMeId(String meId) {
+		this.meId = meId;
+	}
+
+	public void evict(String idToEvict) {
+		panzers.remove(idToEvict);
+	}
+
+	public void updatePanzer(String id, float x, float y, float angle) {
+		if (panzers.isEmpty()) {
+			return;
+		}
+
+		Panzer panzer = panzers.get(id);
+		if (panzer == null) {
+			panzer = new Panzer(x, y, "panzer_enemy.png");
+			panzers.put(id, panzer);
+		} else {
+			panzer.moveTo(x, y);
+		}
+
+		panzer.rotateTo(angle);
 	}
 }
